@@ -25,7 +25,7 @@ const HomeScreen = () => {
     const userDocRef = doc(db, "forums", userId);
     const docSnap = await getDoc(userDocRef);
     if (!docSnap.exists()) {
-      await setDoc(userDocRef, { header: [], comment: [], imageURLs: [] });
+      await setDoc(userDocRef, { header: null });
       console.log("Document forums created");
     } else {
       console.log("Document forums already exists");
