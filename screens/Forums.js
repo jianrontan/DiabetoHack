@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler, Image, FlatList, TextInput } from 'react-native';
+import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler, Image, FlatList, TextInput, SafeAreaView } from 'react-native';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
 import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { getDoc, updateDoc, doc, setDoc, onSnapshot, collection, getDocs, query,
 import { db } from '../firebase/firebase';
 
 import { COLORS, FONT, SIZES, icons } from "../constants";
+import { ScrollView } from "react-native-gesture-handler";
 
 export default function Forums() {
 
@@ -107,46 +108,58 @@ export default function Forums() {
     };
 
     return (
-        <View>
-            <FlatList
-                data={forums}
-                removeClippedSubviews={false}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <View>
-                        <Text>{item.header}</Text>
-                        <Text>{item.comment}</Text>
-                        {item.imageURLs && item.imageURLs.map((url, index) => (
-                            <Image key={index} source={{ uri: url }} style={{ width: 100, height: 75 }} />
-                        ))}
-                    </View>
-                )}
-            />
-            {type === 'user' || type === 'admin' ? (
+        <SafeAreaView style={{ flex: 1 }}>
+            <View contentContainerStyle={{ flexGrow: 1 }}>
                 <View>
-                    <Text>Apply to be a writer here:</Text>
-                    <View style={{ borderWidth: 1 }}>
-                        <TextInput
-                            placeholder="Enter your name and designation"
-                            autoFocus={false}
-                            value={name}
-                            onChangeText={setName}
-                        />
-                    </View>
-                    <View style ={{padding: 2}}></View>
-                    <View style={{ borderWidth: 1 }}>
-                        <TextInput
-                            placeholder="Enter your email address"
-                            autoFocus={false}
-                            value={email}
-                            onChangeText={setEmail}
-                        />
-                    </View>
-                    <TouchableOpacity onPress={handleSubmit}>
-                        <Text>Submit</Text>
-                    </TouchableOpacity>
+                    <FlatList
+                        data={forums}
+                        removeClippedSubviews={false}
+                        showsVerticalScrollIndicator={false}
+                        keyExtractor={item => item.id}
+                        style={{
+                            
+                        }}
+                        renderItem={({ item }) => (
+                            <View style={{ padding: 10 }}>
+                                <Text style={{ fontFamily: FONT.bold, flexWrap: 'wrap' }}>{item.header}</Text>
+                                <Text style={{ fontFamily: FONT.medium, flexWrap: 'wrap' }}>{item.comment}</Text>
+                                {item.imageURLs && item.imageURLs.map((url, index) => (
+                                    <Image key={index} source={{ uri: url }} style={{ width: 320, height: 240, resizeMode: 'contain', alignSelf: 'center', top: 10 }} />
+                                ))}
+                            </View>
+                        )}
+                        ListFooterComponent={
+                            <>
+                            { type === 'user' || type === 'admin' ? (
+                                <View>
+                                    <Text>Apply to be a writer here:</Text>
+                                    <View style={{ borderWidth: 1 }}>
+                                        <TextInput
+                                            placeholder="Enter your name and designation"
+                                            autoFocus={false}
+                                            value={name}
+                                            onChangeText={setName}
+                                        />
+                                    </View>
+                                    <View style={{ padding: 2 }}></View>
+                                    <View style={{ borderWidth: 1 }}>
+                                        <TextInput
+                                            placeholder="Enter your email address"
+                                            autoFocus={false}
+                                            value={email}
+                                            onChangeText={setEmail}
+                                        />
+                                    </View>
+                                    <TouchableOpacity onPress={handleSubmit}>
+                                        <Text>Submit</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : null}
+                            </>
+                        }
+                    />
                 </View>
-            ) : null}
-        </View>
+            </View>
+        </SafeAreaView>
     )
 };
