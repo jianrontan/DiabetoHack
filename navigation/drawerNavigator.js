@@ -16,10 +16,9 @@ import LabReportScreen from '../screens/LabReportScreen';
 import SensitivityScreen from '../screens/SensitivityScreen';
 import HypoScreen from '../screens/HypoScreen';
 import HyperScreen from '../screens/HyperScreen';
+import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import Insulin from '../screens/Insulin';
-import ForumScreen from '../screens/ForumScreen';
-import Forums from '../screens/Forums';
-import Applications from '../screens/Applications';
+import CorrectionScreen from '../screens/Correction';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
@@ -44,30 +43,6 @@ export default function DrawerStack() {
 
         return () => backHandler.remove();
     }, []);
-
-    const [type, setType] = useState("user");
-
-    async function fetchUserType() {
-        const auth = getAuth();
-        const userId = auth.currentUser.uid;
-        const userTypeRef = doc(db, 'usertype', userId);
-
-        try {
-            const docSnap = await getDoc(userTypeRef);
-            if (docSnap.exists()) {
-                const holdData = docSnap.data(); // Return the user's type
-                setType(holdData.type || "user");
-            } else {
-                console.log('No such document!');
-            };
-        } catch (error) {
-            console.error('Error fetching user type:', error);
-        };
-    };
-
-    useEffect(() => {
-        fetchUserType();
-    }, [])
 
     // State variable appIsReady tracks when app is ready to render
     const [appIsReady, setAppIsReady] = useState(false);
@@ -120,7 +95,7 @@ export default function DrawerStack() {
                 setDoc(userDocRef, {
                     name: null,
                     gender: null,
-                    type: null,
+                    type: null, 
                     complete: false,
                 });
                 setLoading(false);
@@ -208,17 +183,11 @@ export default function DrawerStack() {
                         const navigation = useNavigation();
                         return (
                             <View style={appStyles.buttonPadding}>
-                                <ScreenHeaderBtn
+                                <DrawerBackBtn
                                     iconUrl={icons.left}
                                     dimension='60%'
                                     title='goBack'
-                                    onPress={() => {
-                                        if (navigation.canGoBack()) {
-                                            navigation.goBack();
-                                        } else {
-                                            navigation.navigate('App');
-                                        }
-                                    }}
+                                    onPress={() => navigation.navigate('App')}
                                 />
                             </View>
                         )
@@ -230,16 +199,10 @@ export default function DrawerStack() {
                 <Drawer.Screen name="Lab Reports" component={LabReportScreen} />
                 <Drawer.Screen name="Carb Counting" component={CarbCountingScreen} />
                 <Drawer.Screen name="Sensitivity Calculation" component={SensitivityScreen} />
+                <Drawer.Screen name="Correction" component={CorrectionScreen}/>
                 <Drawer.Screen name="Hypoglycaemia" component={HypoScreen} />
                 <Drawer.Screen name="Hyperglycaemia" component={HyperScreen} />
-                <Drawer.Screen name="Insulin" component={Insulin} />
-                <Drawer.Screen name="Forums" component={Forums} />
-                {type === 'writer' || type === 'admin' ? (
-                    <Drawer.Screen name="Write Forums" component={ForumScreen} />
-                ) : null}
-                {type === 'admin' ? (
-                    <Drawer.Screen name="Applications" component={Applications} />
-                ) : null}
+                <Drawer.Screen name="All About Insulin" component={Insulin}/>
             </Drawer.Navigator>
         </NavigationContainer>
     )

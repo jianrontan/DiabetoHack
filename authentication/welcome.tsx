@@ -11,7 +11,7 @@ const Welcome: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
         <View style={{ flex: 1, padding: SIZES.medium, }}>
 
           <View style={{ alignItems: 'center', padding: SIZES.xLarge }}>
-            <Text>Welcome to Diabeto</Text>
+            <Text>Welcome to Rizzly</Text>
           </View>
 
           <View style={{ alignItems: 'center', padding: SIZES.xLarge }}>

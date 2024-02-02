@@ -2,25 +2,26 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 const HyperScreen = ({ navigation }) => {
-  const navigateToSensitivityScreen = () => {
-    navigation.navigate('Sensitivity Calculation');
+  const navigateToCorrectionScreen = () => {
+    navigation.navigate('Correction');
   };
 
   const navigateToCarbCountingScreen = () => {
-    navigation.navigate('Carb Counting');
+    navigation.navigate('CarbCountingScreen');
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Fight Against High Blood Glucose</Text>
       <Text style={styles.description}>
-        Here are some tips to help you manage high blood glucose levels:
+        What is High Blood Glucose? It is when there is insufficient insulin hence excess amounts of glucose are found in the body
       </Text>
-      {/* Add information on fighting high blood glucose */}
+      <Text style={styles.description}>What are common symptoms of hyperglycemia (high blood glucose)? </Text>
+      <Text style={styles.description}>Urinating, excessive thirst and lethargy are symptoms of high blood glucose</Text>
       <TouchableOpacity
         style={styles.button}
-        onPress={navigateToSensitivityScreen}>
-        <Text style={styles.buttonText}>Calculate Insulin Sensitivity</Text>
+        onPress={navigateToCorrectionScreen}>
+        <Text style={styles.buttonText}>Calculate how much bolus(short acting insulin) to give</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.button}
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   description: {
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 20,
   },
   button: {

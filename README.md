@@ -1,1 +1,1 @@
-# Diabeto
+# rizzly
