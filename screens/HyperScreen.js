@@ -7,7 +7,7 @@ const HyperScreen = ({ navigation }) => {
   };
 
   const navigateToCarbCountingScreen = () => {
-    navigation.navigate('CarbCountingScreen');
+    navigation.navigate('Carb Counting');
   };
 
   return (
