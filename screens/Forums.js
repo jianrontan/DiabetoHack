@@ -1,165 +1,345 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler, Image, FlatList, TextInput, SafeAreaView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Alert, Dimensions } from 'react-native';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { getDoc, updateDoc, doc, setDoc, onSnapshot, collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion, DocumentSnapshot, serverTimestamp } from 'firebase/firestore';
+import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
+import * as ImagePicker from 'expo-image-picker';
+import DraggableGrid from 'react-native-draggable-grid';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 import { COLORS, FONT, SIZES, icons } from "../constants";
-import { ScrollView } from "react-native-gesture-handler";
 
-export default function Forums() {
+const Forums = () => {
 
-    // TODO: ADD IN KEYBOARD SPACER / FIX KEYBOARD
+	// Authentication
+	const auth = getAuth();
+	const userId = auth.currentUser.uid;
 
-    // Authentication
-    const auth = getAuth();
-    const userId = auth.currentUser.uid;
+	const [header, setHeader] = useState('');
+	const [comment, setComment] = useState('');
+	const [image, setImage] = useState([]);
+	const [removedImage, setRemovedImage] = useState([]);
+	const [imageUri, setImageUri] = useState(null);
+	const [userType, setUserType] = useState('');
+	const [submitting, setSubmitting] = useState(false);
 
-    // Forums
-    const [forums, setForums] = useState([]);
+	const getFirestoreData = () => {
+		const docRef = doc(db, 'usertype', userId);
+		const unsubscribe = onSnapshot(docRef, (docSnap) => {
+			if (docSnap.exists()) {
+				const holdData = docSnap.data();
+				setUserType(holdData.type || 'user');
+			} else {
+				console.log('No such document!');
+			}
+		});
 
-    // Details
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
+		return () => unsubscribe();
+	};
 
-    // User type
-    const [type, setType] = useState("user");
+	useFocusEffect(
+		useCallback(() => {
+			getFirestoreData();
+		}, [])
+	);
 
-    async function fetchUserType() {
-        const auth = getAuth();
-        const userId = auth.currentUser.uid;
-        const userTypeRef = doc(db, 'usertype', userId);
+	const handleHeaderChange = (text) => {
+		setHeader(text);
+	};
 
-        try {
-            const docSnap = await getDoc(userTypeRef);
-            if (docSnap.exists()) {
-                const holdData = docSnap.data(); // Return the user's type
-                setType(holdData.type || "user");
-            } else {
-                console.log('No such document!');
-            };
-        } catch (error) {
-            console.error('Error fetching user type:', error);
-        };
-    };
+	const handleCommentChange = (text) => {
+		setComment(text);
+	};
 
-    useEffect(() => {
-        fetchUserType();
-    }, [])
+	// Images
+	const renderItem = (item) => {
+		return (
+			<View key={item.key} style={styles.item}>
+				<Image source={{ uri: item.uri }} style={styles.image} />
+				<TouchableOpacity
+					onPress={() => removeImage(item.id)}
+					style={{
+						position: 'absolute',
+						right: -5,
+						top: -5,
+						backgroundColor: '#d9dbda',
+						width: 20,
+						height: 20,
+						borderRadius: 15,
+						justifyContent: 'center',
+						alignItems: 'center',
+						zIndex: 1,
+					}}>
+					<Image source={icons.cross} style={{ width: 13, height: 13, }}></Image>
+				</TouchableOpacity>
+			</View>
+		);
+	};
 
-    // Data
-    useEffect(() => {
-        const forumsRef = collection(db, 'forums');
-        const q = query(forumsRef, orderBy('createdAt', 'desc'));
+	const onDragRelease = (newDataOrder) => {
+		const newData = newDataOrder.map((item, index) => ({
+			...item,
+			order: index,
+		}));
+		setImage(newData);
+	};
 
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const forumsArray = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setForums(forumsArray);
-        });
+	const handleImageUpload = async () => {
+		if (image.length >= 2) {
+			Alert.alert(
+				"Invalid Photo Count",
+				`Maximum number of pictures uploaded.`,
+				[{ text: "OK" }]
+			);
+			return;
+		}
+		let result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ImagePicker.MediaTypeOptions.All,
+			allowsEditing: true,
+			aspect: [4, 3],
+			quality: 0.2,
+		});
+		if (!result.canceled) {
+			let newImage = {
+				key: Math.random().toString(),
+				id: Math.random().toString(),
+				uri: result.assets[0].uri,
+				order: image.length,
+				isNew: true,
+			};
+			setImage(prevImages => [...prevImages, newImage]);
+		}
+	};
 
-        return () => unsubscribe();
-    }, []);
+	const removeImage = (id) => {
+		const imgIndex = image.findIndex((img) => img.id === id);
+		if (imgIndex !== -1) {
+			const { uri, isNew } = image[imgIndex];
+			if (!isNew) {
+				setRemovedImage((oldArray) => [...oldArray, uri]);
+			}
+			setImage((prevImages) => prevImages.filter((img) => img.id !== id));
+		}
+	};
 
-    // Email Validation
-    const isEmailValid = (email) => {
-        const pattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
-        return pattern.test(email);
-    };
+	// Image uploading
+	const uploadImage = async (uri, order, id) => {
+		const response = await fetch(uri);
+		const blob = await response.blob();
 
-    const handleSubmit = async () => {
-        if (!isEmailValid(email)) {
-            Alert.alert(
-                "Invalid Email",
-                `Please enter a valid email.`,
-                [{ text: "OK" }]
-            );
-        } else {
-            const userDocRef = doc(db, 'applications', userId);
-            try {
-                const docSnap = await getDoc(userDocRef);
-                if (docSnap.exists()) {
-                    Alert.alert(
-                        "Alert",
-                        `Please wait for your application to be reviewed.`,
-                        [{ text: "OK" }]
-                    );
-                    return;
-                } else {
-                    await setDoc(userDocRef, { name: name, email: email });
-                    setName('');
-                    setEmail('');
-                    Alert.alert(
-                        "Success",
-                        `Your application will be sent for review.`,
-                        [{ text: "OK" }]
-                    );
-                };
-            } catch (e) {
-                console.error("Error submitting: ", e);
-            };
-        };
-    };
+		const storageRef = ref(storage, `forum_pictures/${userId}/${Date.now()}`);
+		const uploadTask = uploadBytesResumable(storageRef, blob);
 
-    return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <View contentContainerStyle={{ flexGrow: 1 }}>
-                <View>
-                    <FlatList
-                        data={forums}
-                        removeClippedSubviews={false}
-                        showsVerticalScrollIndicator={false}
-                        keyExtractor={item => item.id}
-                        style={{
-                            
-                        }}
-                        renderItem={({ item }) => (
-                            <View style={{ padding: 10 }}>
-                                <Text style={{ fontFamily: FONT.bold, flexWrap: 'wrap' }}>{item.header}</Text>
-                                <Text style={{ fontFamily: FONT.medium, flexWrap: 'wrap' }}>{item.comment}</Text>
-                                {item.imageURLs && item.imageURLs.map((url, index) => (
-                                    <Image key={index} source={{ uri: url }} style={{ width: 320, height: 240, resizeMode: 'contain', alignSelf: 'center', top: 10 }} />
-                                ))}
-                            </View>
-                        )}
-                        ListFooterComponent={
-                            <>
-                            { type === 'user' || type === 'admin' ? (
-                                <View>
-                                    <Text>Apply to be a writer here:</Text>
-                                    <View style={{ borderWidth: 1 }}>
-                                        <TextInput
-                                            placeholder="Enter your name and designation"
-                                            autoFocus={false}
-                                            value={name}
-                                            onChangeText={setName}
-                                        />
-                                    </View>
-                                    <View style={{ padding: 2 }}></View>
-                                    <View style={{ borderWidth: 1 }}>
-                                        <TextInput
-                                            placeholder="Enter your email address"
-                                            autoFocus={false}
-                                            value={email}
-                                            onChangeText={setEmail}
-                                        />
-                                    </View>
-                                    <TouchableOpacity onPress={handleSubmit}>
-                                        <Text>Submit</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            ) : null}
-                            </>
-                        }
-                    />
-                </View>
-            </View>
-        </SafeAreaView>
-    )
+		return new Promise((resolve, reject) => {
+			uploadTask.on(
+				"state_changed",
+				(snapshot) => {
+					const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+					console.log(`Upload is ${progress}% done`);
+				},
+				(error) => {
+					console.log(error);
+					reject(error);
+				},
+				() => {
+					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+						console.log(`File available at: ${downloadURL}`);
+						resolve({ url: downloadURL, id: id });
+					});
+				}
+			);
+		});
+	};
+
+	const handleSubmit = async () => {
+		setSubmitting(true);
+		try {
+			const userDocRef = doc(db, 'forums', userId);
+			const sortedImages = [...image].sort((a, b) => a.order - b.order);
+			const imageURLs = [];
+
+			for (let img of sortedImages) {
+				if (img.isNew) {
+					const uploadResult = await uploadImage(img.uri, img.order, img.id);
+					imageURLs.push(uploadResult.url);
+				} else {
+					imageURLs.push(img.uri);
+				}
+			}
+
+			let successfullyRemovedImages = [];
+			for (let url of removedImage) {
+				try {
+					const deleteRef = ref(storage, url);
+					await deleteObject(deleteRef);
+					successfullyRemovedImages.push(url);
+				} catch (error) {
+					console.error("Error deleting image: ", error);
+				}
+			};
+			setRemovedImage(prevState => prevState.filter(url => !successfullyRemovedImages.includes(url)));
+
+			const forumRef = collection(db, 'forums');
+			const newForumPostRef = doc(forumRef);
+			await setDoc(newForumPostRef, {
+				userId,
+				header,
+				comment,
+				imageURLs,
+				createdAt: serverTimestamp(),
+			});
+			setSubmitting(false);
+			setHeader('');
+			setComment('');
+			setImage([]);
+			Alert.alert(
+				"Success",
+				`Your article has been uploaded.`,
+				[{ text: "OK" }]
+			);
+		} catch (e) {
+			setSubmitting(false);
+			console.error("Error submitting: ", e);
+		}
+	};
+
+	return (
+		<ScrollView contentContainerStyle={styles.container}>
+
+			<View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8 }}>
+				<Text style={styles.title}>Write an article</Text>
+
+				<View style={styles.submitButton}>
+					<TouchableOpacity onPress={handleSubmit}>
+						<Text style={styles.submitButtonText}>Submit</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
+
+			<View style={styles.inputContainer}>
+				<TextInput
+					style={styles.input}
+					placeholder="Type your header..."
+					value={header}
+					onChangeText={handleHeaderChange}
+				/>
+				<TextInput
+					style={styles.input}
+					placeholder="Type your article..."
+					multiline
+					value={comment}
+					onChangeText={handleCommentChange}
+				/>
+			</View>
+
+			<TouchableOpacity style={styles.uploadButton} onPress={handleImageUpload}>
+				<Text style={styles.uploadButtonText}>Upload Image</Text>
+			</TouchableOpacity>
+
+			<DraggableGrid
+				numColumns={2}
+				data={image}
+				renderItem={renderItem}
+				disableResorted={true}
+				onDragRelease={onDragRelease}
+			/>
+
+			<Spinner
+				visible={submitting}
+				animation='fade'
+				overlayColor="rgba(0, 0, 0, 0.25)"
+				color="white"
+				indicatorStyle={{
+
+				}}
+				textContent='Uploading...'
+				textStyle={{
+					fontFamily: FONT.bold,
+					fontSize: SIZES.medium,
+					fontWeight: 'normal',
+					color: 'white',
+				}}
+			/>
+		</ScrollView>
+	);
 };
+
+const width = Dimensions.get('window').width;
+
+const styles = StyleSheet.create({
+	container: {
+		flexGrow: 1,
+		padding: 16,
+	},
+	title: {
+		fontSize: 24,
+		fontWeight: 'bold',
+		marginBottom: 16,
+	},
+	inputContainer: {
+		flexDirection: 'column',
+		alignItems: 'left',
+		marginBottom: 0,
+	},
+	item: {
+		width: width / 2 - 50,
+		aspectRatio: 4 / 3,
+		bottom: 20
+	},
+	image: {
+		borderRadius: 5,
+		borderWidth: 1,
+		borderColor: 'gray',
+		width: '100%',
+		height: '100%',
+		resizeMode: 'contain',
+	},
+	input: {
+		flex: 1,
+		borderWidth: 1,
+		borderColor: 'gray',
+		borderRadius: 8,
+		padding: 8,
+		fontSize: 18,
+		marginBottom: 12,
+		width: '100%',
+	},
+	uploadButton: {
+		paddingVertical: 8, 
+		paddingHorizontal: 24, 
+		borderRadius: 8,
+		backgroundColor: 'blue',
+	},
+	uploadButtonText: {
+		color: 'white',
+		fontWeight: 'bold',
+		fontSize: 18, 
+	},
+	imageContainer: {
+		alignItems: 'center',
+		marginBottom: 16,
+	},
+	submitButton: {
+		backgroundColor: 'blue',
+		borderWidth: 1,
+		borderRadius: 8,
+		borderColor: 'gray',
+		alignItems: 'center',
+		justifyContent: 'center',
+		width: 100, 
+		height: 50, 
+	},
+	submitButtonText: {
+		color: 'white',
+		fontWeight: 'bold',
+		fontSize: 20, 
+	},
+});
+
+export default Forums;

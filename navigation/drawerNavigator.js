@@ -22,6 +22,7 @@ import ForumScreen from '../screens/ForumScreen';
 import Forums from '../screens/Forums';
 import Applications from '../screens/Applications';
 import CorrectionScreen from '../screens/Correction';
+import History from '../screens/History';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
@@ -230,6 +231,7 @@ export default function DrawerStack() {
                 <Drawer.Screen name="Hypoglycaemia" component={HypoScreen} />
                 <Drawer.Screen name="Hyperglycaemia" component={HyperScreen} />
                 <Drawer.Screen name="All About Insulin" component={Insulin} />
+                <Drawer.Screen name="History" component={History}/>
                 <Drawer.Screen name="Forums" component={Forums} />
                 {type === 'writer' || type === 'admin' ? (
                     <Drawer.Screen name="Write Forums" component={ForumScreen} />
