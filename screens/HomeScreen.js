@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { doc, updateDoc, arrayUnion, Timestamp, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, Timestamp, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import DateTimePicker from '@react-native-community/datetimepicker';
