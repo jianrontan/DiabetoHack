@@ -11,8 +11,11 @@ const auth = getAuth();
 
 const HomeScreen = () => {
 	const [bloodSugarLevel, setBloodSugarLevel] = useState('');
-	const [selectedDateTime, setSelectedDateTime] = useState(new Date());
+	const [selectedDate, setSelectedDate] = useState(new Date());
+	const [selectedTime, setSelectedTime] = useState(new Date());
+	const [date, setDate] = useState(new Date());
 	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+	const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
 	const [hasEaten, setHasEaten] = useState(false);
 	const [hasInsulin, setHasInsulin] = useState(false);
 	const [insulinUnits, setInsulinUnits] = useState('');
@@ -49,19 +52,20 @@ const HomeScreen = () => {
 
 	const handleSubmit = async () => {
 		// Check if both fields are filled
-		if (!bloodSugarLevel || !selectedDateTime) {
+		if (!bloodSugarLevel || !selectedDate || !selectedTime) {
 			alert("Please fill up all fields");
 			return;
 		}
 
 		// Create a Firestore document reference
 		const docRef = doc(db, 'profiles', userId);
-
+		const combinedDateTime = combineDateTime(selectedDate, selectedTime);
+		const timestamp = Timestamp.fromDate(combinedDateTime);
 		try {
 			// Update data in Firestore to append the new reading to the existing array
 			await updateDoc(docRef, {
 				bloodSugarLevels: arrayUnion(parseFloat(bloodSugarLevel)),
-				times: arrayUnion(Timestamp.fromDate(selectedDateTime)),
+				times: arrayUnion(timestamp),
 				hasEaten: arrayUnion(hasEaten),
 				hasInsulin: arrayUnion(hasInsulin),
 				insulinUnits: arrayUnion(hasInsulin ? parseFloat(insulinUnits) : null),
@@ -69,7 +73,7 @@ const HomeScreen = () => {
 			console.log('Data successfully added to Firestore');
 			// Clear form fields after submission
 			setBloodSugarLevel('');
-			setSelectedDateTime(new Date());
+			setSelectedDate(new Date());
 			setHasEaten(false);
 			setHasInsulin(false);
 			setInsulinUnits('');
@@ -90,14 +94,35 @@ const HomeScreen = () => {
 		setDatePickerVisibility(true);
 	};
 
+	const showTimePicker = () => {
+		setTimePickerVisibility(true);
+	};
+
 	const hideDatePicker = () => {
 		setDatePickerVisibility(false);
 	};
 
+	const hideTimePicker = () => {
+		setTimePickerVisibility(false);
+	};
+
 	const handleDateChange = (event, selectedDate) => {
 		const currentDate = selectedDate || date;
-		setSelectedDateTime(currentDate);
-		setDatePickerVisibility(Platform.OS === 'ios');
+		setSelectedDate(currentDate);
+		setDatePickerVisibility(false);
+	};
+
+	const handleTimeChange = (event, selectedTime) => {
+		const currentTime = selectedTime || time;
+		setSelectedTime(currentTime);
+		setTimePickerVisibility(false);
+	};
+
+	const combineDateTime = (date, time) => {
+		let combined = new Date(date);
+		combined.setHours(time.getHours());
+		combined.setMinutes(time.getMinutes());
+		return combined;
 	};
 
 	return (
@@ -112,19 +137,27 @@ const HomeScreen = () => {
 					onChangeText={(text) => setBloodSugarLevel(text)}
 				/>
 				<View style={styles.buttonContainer}>
-					<Button title="Select Date & Time" onPress={showDatePicker} />
+					<Button title="Select Date" onPress={showDatePicker} />
 					{isDatePickerVisible && (
 						<DateTimePicker
-							testID="dateTimePicker"
-							value={selectedDateTime}
-							mode="datetime"
-							is24Hour={true}
+							id="datePicker"
+							value={selectedDate}
+							mode="date"
 							display="default"
 							onChange={handleDateChange}
 							maximumDate={new Date()}
 						/>
 					)}
-					<Button title="Close" onPress={hideDatePicker} />
+					<Button title="Select Time" onPress={showTimePicker} />
+					{isTimePickerVisible && (
+						<DateTimePicker
+							id="timePicker"
+							value={selectedTime}
+							mode="time"
+							display='default'
+							onChange={handleTimeChange}
+						/>
+					)}
 					<View style={styles.switchContainer}>
 						<Text style={styles.switchLabel}>Consumed food? </Text>
 						<Switch
