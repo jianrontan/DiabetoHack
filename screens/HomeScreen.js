@@ -62,12 +62,21 @@ const HomeScreen = () => {
 		const combinedDateTime = combineDateTime(selectedDate, selectedTime);
 		const timestamp = Timestamp.fromDate(combinedDateTime);
 		try {
-			// Update data in Firestore to append the new reading to the existing array
+			const docSnap = await getDoc(docRef);
+			let hasEatenArray = [];
+			let hasInsulinArray = [];
+			if (docSnap.exists()) {
+				const data = docSnap.data();
+				hasEatenArray = data.hasEaten || [];
+				hasInsulinArray = data.hasInsulin || [];
+			}
+			hasEatenArray.push(hasEaten);
+			hasInsulinArray.push(hasInsulin);
 			await updateDoc(docRef, {
 				bloodSugarLevels: arrayUnion(parseFloat(bloodSugarLevel)),
 				times: arrayUnion(timestamp),
-				hasEaten: arrayUnion(hasEaten),
-				hasInsulin: arrayUnion(hasInsulin),
+				hasEaten: hasEatenArray,
+				hasInsulin: hasInsulinArray,
 				insulinUnits: arrayUnion(hasInsulin ? parseFloat(insulinUnits) : null),
 			});
 			console.log('Data successfully added to Firestore');
