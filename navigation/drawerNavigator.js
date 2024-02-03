@@ -10,6 +10,7 @@ import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
 import BottomTabStack from "./bottomTabNavigator";
+import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../drawer/settings';
 import CarbCountingScreen from '../screens/CarbCountScreen';
 import LabReportScreen from '../screens/LabReportScreen';
@@ -220,7 +221,8 @@ export default function DrawerStack() {
                         )
                     },
                 })}
-            >
+            >   
+                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: {height: 0}, headerLeft: () => null }}/>
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsScreen} />
                 <Drawer.Screen name="Lab Reports" component={LabReportScreen} />
