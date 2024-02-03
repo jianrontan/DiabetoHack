@@ -71,7 +71,7 @@ const CorrectionScreen = () => {
         {/* Button to fetch previous ISF */}
         <Button title="Fetch previous ISF" onPress={calculateISF} />
 
-        {isf !== '' && <Text style={styles.result}>ISF: {isf} mg/dL per unit</Text>}
+        {isf !== '' && <Text style={styles.result}>ISF: {isf} mmol/dL per unit</Text>}
 
         <Text style={styles.subtitle}>Calculate Correction Insulin Dose</Text>
         <TextInput

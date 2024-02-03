@@ -13,7 +13,7 @@ const SensitivityScreen = () => {
 
   const calculateISF = async () => {
     if (totalDailyDose) {
-      const calculatedISF = 1500 / parseFloat(totalDailyDose);
+      const calculatedISF = 100 / parseFloat(totalDailyDose);
       setISF(calculatedISF.toFixed(2));
 
       // Update Firebase database with ISF value
@@ -48,7 +48,7 @@ const SensitivityScreen = () => {
           onChangeText={(text) => setTotalDailyDose(text)}
         />
         <Button title="Calculate ISF" onPress={calculateISF} />
-        {isf !== '' && <Text style={styles.result}>ISF: {isf} mg/dL per unit</Text>}
+        {isf !== '' && <Text style={styles.result}>ISF: {isf} mmol/dL per unit</Text>}
       </View>
     </KeyboardAwareScrollView>
   );
