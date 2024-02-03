@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const History = () => {
     const [bloodGlucoseData, setBloodGlucoseData] = useState([]);
+
     useFocusEffect(
         React.useCallback(() => {
             let isCancelled = false;
@@ -22,7 +23,17 @@ const History = () => {
                     if (userDocSnap.exists()) {
                         const userData = userDocSnap.data();
                         if (userData && userData.bloodSugarLevels) {
-                            setBloodGlucoseData(userData);
+                            // Sort the times array in descending order
+                            const sortedTimes = userData.times.sort((a, b) => b.toDate() - a.toDate());
+                            // Arrange other data based on the sorted times array
+                            const sortedData = {
+                                ...userData,
+                                bloodSugarLevels: userData.bloodSugarLevels.sort((a, b) => sortedTimes.indexOf(a) - sortedTimes.indexOf(b)),
+                                hasEaten: userData.hasEaten.sort((a, b) => sortedTimes.indexOf(a) - sortedTimes.indexOf(b)),
+                                hasInsulin: userData.hasInsulin.sort((a, b) => sortedTimes.indexOf(a) - sortedTimes.indexOf(b)),
+                                insulinUnits: userData.insulinUnits.sort((a, b) => sortedTimes.indexOf(a) - sortedTimes.indexOf(b)),
+                            };
+                            setBloodGlucoseData(sortedData);
                         }
                     } else {
                         console.log('User document not found.');
