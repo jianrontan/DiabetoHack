@@ -48,7 +48,7 @@ const LabReportScreen = () => {
 			<View style={styles.inputContainer}>
 				<Text style={styles.label}>{item.name}:</Text>
 				<TextInput
-					style={[styles.input, { color: checkRange(item.value, ...item.range) }]}
+					style={[styles.input, { color: checkRange(tempValue, ...item.range) }]}
 					value={tempValue}
 					onChangeText={setTempValue}
 					onBlur={handleBlur}
