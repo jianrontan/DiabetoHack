@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -23,9 +23,7 @@ const History = () => {
                     if (userDocSnap.exists()) {
                         const userData = userDocSnap.data();
                         if (userData && userData.bloodSugarLevels) {
-                            // Sort the times array in descending order
                             const sortedTimes = userData.times.sort((a, b) => b.toDate() - a.toDate());
-                            // Arrange other data based on the sorted times array
                             const sortedData = {
                                 ...userData,
                                 bloodSugarLevels: userData.bloodSugarLevels.sort((a, b) => sortedTimes.indexOf(a) - sortedTimes.indexOf(b)),

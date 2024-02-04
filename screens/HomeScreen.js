@@ -56,8 +56,6 @@ const HomeScreen = () => {
 			alert("Please fill up all fields");
 			return;
 		}
-
-		// Create a Firestore document reference
 		const docRef = doc(db, 'profiles', userId);
 		const combinedDateTime = combineDateTime(selectedDate, selectedTime);
 		const timestamp = Timestamp.fromDate(combinedDateTime);
@@ -80,7 +78,6 @@ const HomeScreen = () => {
 				insulinUnits: arrayUnion(hasInsulin ? parseFloat(insulinUnits) : null),
 			});
 			console.log('Data successfully added to Firestore');
-			// Clear form fields after submission
 			setBloodSugarLevel('');
 			setSelectedDate(new Date());
 			setHasEaten(false);

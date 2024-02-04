@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import { VictoryChart, VictoryLine, VictoryZoomContainer, VictoryTooltip, VictoryScatter, VictoryAxis } from 'victory-native';
-import { doc, getDoc, toDate } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { View, StyleSheet, Dimensions } from 'react-native';
+import { VictoryChart, VictoryLine, VictoryZoomContainer, VictoryAxis } from 'victory-native';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { Picker } from '@react-native-picker/picker';
@@ -14,20 +14,12 @@ const auth = getAuth();
 const GraphScreen = () => {
   const [groupedData, setGroupedData] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("day");
-  const [timestamps, setTimestamps] = useState([]);
-  const [bloodSugarLevels, setBloodSugarLevels] = useState([]);
 
   const getWeekNumber = (d) => {
-    // Copy date so don't modify original
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    // Set to nearest Thursday: current date + 4 - current day number
-    // Make Sunday's day number 7
     d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-    // Get first day of year
     var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    // Calculate full weeks to nearest Thursday
     var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    // Return array of year and week number
     return [d.getUTCFullYear(), weekNo];
   }
 
@@ -44,8 +36,7 @@ const GraphScreen = () => {
       const bloodSugarLevels = userData?.bloodSugarLevels || [];
       const timestamps = userData?.times || [];
 
-      if (selectedFilter === "day") { // Check if the selected filter is "Today"
-        // Filter timestamps to include only today's timestamps
+      if (selectedFilter === "day") {
         const today = new Date();
         const todayTimestamps = timestamps.filter(timestamp => {
           const date = timestamp.toDate();
@@ -56,10 +47,8 @@ const GraphScreen = () => {
           );
         });
 
-        // Extract blood sugar levels corresponding to today's timestamps
         const todayBloodSugarLevels = todayTimestamps.map((timestamp, index) => bloodSugarLevels[index]);
 
-        // Process data points for today
         const dataPoints = todayTimestamps.map((timestamp, index) => {
           const date = timestamp.toDate();
           const hour = date.getHours();
@@ -71,8 +60,7 @@ const GraphScreen = () => {
         });
 
         setGroupedData(dataPoints);
-      } else if (selectedFilter === "week") { // Fetch data for "This Week"
-        // Filter timestamps to include only timestamps from this week
+      } else if (selectedFilter === "week") {
         const today = new Date();
         const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1); // Start of the current week (Monday)
         const endOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 7); // End of the current week (Sunday)
@@ -82,18 +70,16 @@ const GraphScreen = () => {
           return date >= startOfWeek && date <= endOfWeek;
         });
 
-        // Extract blood sugar levels corresponding to this week's timestamps
         const thisWeekBloodSugarLevels = thisWeekTimestamps.map((timestamp, index) => bloodSugarLevels[index]);
 
-        // Process data points for this week
         const dataPoints = thisWeekTimestamps.map((timestamp, index) => {
           const date = timestamp.toDate();
-          const dayOfWeek = date.getDay(); // Get the day of the week (0 for Sunday, 1 for Monday, ..., 6 for Saturday)
+          const dayOfWeek = date.getDay();
           const bloodGlucoseLevel = thisWeekBloodSugarLevels[index];
 
           console.log('Timestamp:', timestamp, 'Blood Glucose Level:', bloodGlucoseLevel);
 
-          return { x: dayOfWeek === 0 ? 7 : dayOfWeek, y: bloodGlucoseLevel }; // Convert Sunday (0) to 7 for plotting purposes
+          return { x: dayOfWeek === 0 ? 7 : dayOfWeek, y: bloodGlucoseLevel };
         });
 
         setGroupedData(dataPoints);
@@ -109,7 +95,6 @@ const GraphScreen = () => {
 
   const renderGraph = () => {
     if (selectedFilter === "day") {
-      // Render data for "Today"
       return (
         <VictoryChart
           containerComponent={<VictoryZoomContainer />}
@@ -139,11 +124,10 @@ const GraphScreen = () => {
         </VictoryChart>
       );
     } else if (selectedFilter === "week") {
-      // Render data for "This Week"
       return (
         <VictoryChart
           containerComponent={<VictoryZoomContainer />}
-          domain={{ y: [0, 25], x: [1, 7] }} // Set x-axis domain for days of the week (1 to 7)
+          domain={{ y: [0, 25], x: [1, 7] }}
           style={styles.graph}
         >
           {groupedData.length > 0 && <VictoryLine data={groupedData} x="x" y="y" />}
@@ -164,12 +148,11 @@ const GraphScreen = () => {
         </VictoryChart>
       );
     } else if (selectedFilter === "month") {
-      // Render data for "This Month"
       const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); // Get number of days in current month
       return (
         <VictoryChart
           containerComponent={<VictoryZoomContainer />}
-          domain={{ y: [0, 25], x: [1, daysInMonth] }} // Set x-axis domain for days of the month (1 to number of days in month)
+          domain={{ y: [0, 25], x: [1, daysInMonth] }}
           style={styles.graph}
         >
           {groupedData.length > 0 && <VictoryLine data={groupedData} x="x" y="y" />}

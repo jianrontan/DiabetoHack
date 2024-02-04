@@ -1,19 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Alert, Dimensions } from 'react-native';
-import { useFonts } from 'expo-font';
-import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { useFocusEffect } from '@react-navigation/native';
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion, DocumentSnapshot, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, collection, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
 import DraggableGrid from 'react-native-draggable-grid';
 import Spinner from 'react-native-loading-spinner-overlay';
 
-import { COLORS, FONT, SIZES, icons } from "../constants";
+import { FONT, SIZES, icons } from "../constants";
 
 const Forums = () => {
 
@@ -25,29 +21,7 @@ const Forums = () => {
 	const [comment, setComment] = useState('');
 	const [image, setImage] = useState([]);
 	const [removedImage, setRemovedImage] = useState([]);
-	const [imageUri, setImageUri] = useState(null);
-	const [userType, setUserType] = useState('');
 	const [submitting, setSubmitting] = useState(false);
-
-	const getFirestoreData = () => {
-		const docRef = doc(db, 'usertype', userId);
-		const unsubscribe = onSnapshot(docRef, (docSnap) => {
-			if (docSnap.exists()) {
-				const holdData = docSnap.data();
-				setUserType(holdData.type || 'user');
-			} else {
-				console.log('No such document!');
-			}
-		});
-
-		return () => unsubscribe();
-	};
-
-	useFocusEffect(
-		useCallback(() => {
-			getFirestoreData();
-		}, [])
-	);
 
 	const handleHeaderChange = (text) => {
 		setHeader(text);
@@ -311,15 +285,15 @@ const styles = StyleSheet.create({
 		width: '100%',
 	},
 	uploadButton: {
-		paddingVertical: 8, 
-		paddingHorizontal: 24, 
+		paddingVertical: 8,
+		paddingHorizontal: 24,
 		borderRadius: 8,
 		backgroundColor: 'blue',
 	},
 	uploadButtonText: {
 		color: 'white',
 		fontWeight: 'bold',
-		fontSize: 18, 
+		fontSize: 18,
 	},
 	imageContainer: {
 		alignItems: 'center',
@@ -332,13 +306,13 @@ const styles = StyleSheet.create({
 		borderColor: 'gray',
 		alignItems: 'center',
 		justifyContent: 'center',
-		width: 100, 
-		height: 50, 
+		width: 100,
+		height: 50,
 	},
 	submitButtonText: {
 		color: 'white',
 		fontWeight: 'bold',
-		fontSize: 20, 
+		fontSize: 20,
 	},
 });
 

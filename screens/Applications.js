@@ -1,11 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler, Image, FlatList, TextInput } from 'react-native';
-import { useFonts } from 'expo-font';
-import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import React, { useState, useEffect } from "react";
+import { Text, View, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { getDoc, updateDoc, doc, setDoc, onSnapshot, collection, getDocs, query, orderBy, deleteDoc } from 'firebase/firestore';
+import {doc, setDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import CheckBox from 'expo-checkbox';
 
@@ -21,7 +17,7 @@ export default function Applications() {
     const [applications, setApplications] = useState([]);
     const [selectedIds, setSelectedIds] = useState(new Set());
 
-    
+
     const fetchApplications = async () => {
         const querySnapshot = await getDocs(collection(db, 'applications'));
         const apps = [];

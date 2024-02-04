@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler, Image, FlatList, TextInput, SafeAreaView } from 'react-native';
-import { useFonts } from 'expo-font';
-import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { Text, View, Alert, TouchableOpacity, Image, FlatList, TextInput, SafeAreaView } from 'react-native';
 import { getAuth } from 'firebase/auth';
-import { getDoc, updateDoc, doc, setDoc, onSnapshot, collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { getDoc, doc, setDoc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
-import { COLORS, FONT, SIZES, icons } from "../constants";
-import { ScrollView } from "react-native-gesture-handler";
+import { FONT } from "../constants";
 
 export default function ForumScreen() {
 
@@ -37,7 +32,7 @@ export default function ForumScreen() {
         try {
             const docSnap = await getDoc(userTypeRef);
             if (docSnap.exists()) {
-                const holdData = docSnap.data(); // Return the user's type
+                const holdData = docSnap.data();
                 setType(holdData.type || "user");
             } else {
                 console.log('No such document!');
@@ -51,7 +46,6 @@ export default function ForumScreen() {
         fetchUserType();
     }, [])
 
-    // Data
     useEffect(() => {
         const forumsRef = collection(db, 'forums');
         const q = query(forumsRef, orderBy('createdAt', 'desc'));
@@ -67,7 +61,6 @@ export default function ForumScreen() {
         return () => unsubscribe();
     }, []);
 
-    // Email Validation
     const isEmailValid = (email) => {
         const pattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
         return pattern.test(email);

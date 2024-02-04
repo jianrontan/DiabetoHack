@@ -6,18 +6,15 @@ import { SplashScreen } from 'expo-router';
 import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { getAuth } from 'firebase/auth';
-import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { getDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
 import BottomTabStack from "./bottomTabNavigator";
-import ProfileScreen from '../screens/ProfileScreen';
-import SettingsScreen from '../drawer/settings';
 import CarbCountingScreen from '../screens/CarbCountScreen';
 import LabReportScreen from '../screens/LabReportScreen';
 import SensitivityScreen from '../screens/SensitivityScreen';
 import HypoScreen from '../screens/HypoScreen';
 import HyperScreen from '../screens/HyperScreen';
-import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import Insulin from '../screens/Insulin';
 import ForumScreen from '../screens/ForumScreen';
 import Forums from '../screens/Forums';
@@ -32,12 +29,10 @@ const Drawer = createDrawerNavigator();
 const auth = getAuth();
 
 export default function DrawerStack() {
-    const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const backAction = () => {
-            // Replace 'App' with the actual route name of your home screen
             if (navigationRef.isReady()) {
                 navigationRef.navigate('App');
             }
@@ -59,7 +54,7 @@ export default function DrawerStack() {
         try {
             const docSnap = await getDoc(userTypeRef);
             if (docSnap.exists()) {
-                const holdData = docSnap.data(); // Return the user's type
+                const holdData = docSnap.data();
                 setType(holdData.type || "user");
             } else {
                 console.log('No such document!');
@@ -117,7 +112,6 @@ export default function DrawerStack() {
             // If exists stop loading
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                setProfileComplete(data.complete);
                 setLoading(false);
                 // Else create a new doc for the user
             } else {
@@ -192,7 +186,7 @@ export default function DrawerStack() {
         >
             <Drawer.Navigator
                 drawerContent={(props) => <CustomDrawerContent {...props} />}
-                initialRouteName={profileComplete ? 'App' : 'Profile'}
+                initialRouteName={'App'}
                 backBehavior='initalRoute'
                 screenOptions={({ route }) => ({
                     drawerStyle: {
@@ -212,7 +206,7 @@ export default function DrawerStack() {
                         const navigation = useNavigation();
                         return (
                             <View style={appStyles.buttonPadding}>
-                                <DrawerBackBtn
+                                <ScreenHeaderBtn
                                     iconUrl={icons.left}
                                     dimension='60%'
                                     title='goBack'
@@ -223,9 +217,7 @@ export default function DrawerStack() {
                     },
                 })}
             >   
-                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: {height: 0}, headerLeft: () => null }}/>
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Settings" component={SettingsScreen} />
                 <Drawer.Screen name="Lab Reports" component={LabReportScreen} />
                 <Drawer.Screen name="Carb Counting" component={CarbCountingScreen} />
                 <Drawer.Screen name="Sensitivity Calculation" component={SensitivityScreen} />

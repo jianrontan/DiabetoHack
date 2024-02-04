@@ -59,7 +59,6 @@ const CorrectionScreen = () => {
       <View style={styles.container}>
         <Text style={styles.title}>Correcting high blood glucose levels</Text>
 
-        {/* Text input for ISF */}
         <TextInput
           style={styles.input}
           placeholder="Enter your Insulin Sensitivity Factor (ISF) (mg/dL per unit)"
@@ -68,7 +67,6 @@ const CorrectionScreen = () => {
           onChangeText={(text) => setISF(text)}
         />
 
-        {/* Button to fetch previous ISF */}
         <Button title="Fetch previous ISF" onPress={calculateISF} />
 
         {isf !== '' && <Text style={styles.result}>ISF: {isf} mmol/dL per unit</Text>}

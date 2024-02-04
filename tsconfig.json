@@ -2,9 +2,15 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"],
-      "@types/lodash": ["./node_modules/@types/lodash"],
-      "@redux/redux": ["./redux/redux"]
+      "@firebase/auth": [
+        "./node_modules/@firebase/auth/dist/index.rn.d.ts"
+      ],
+      "@types/lodash": [
+        "./node_modules/@types/lodash"
+      ],
+      "@redux/redux": [
+        "./redux/redux"
+      ]
     }
   },
   "extends": "expo/tsconfig.base"

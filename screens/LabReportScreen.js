@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, Modal, Button, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
-import { KeyboardAwareScrollView, KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
+import { View, Text, TextInput, StyleSheet, Modal, Button, TouchableOpacity } from 'react-native';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 const LabReportScreen = () => {
 	const [labReports, setLabReports] = useState([
@@ -15,7 +15,7 @@ const LabReportScreen = () => {
 		// Add more lab reports as needed
 	]);
 
-	//Modal 
+	//Modal
 	const [modalVisible, setModalVisible] = useState(false);
 	const [contmodalVisible, setcontModalVisible] = useState(false);
 	const openModal = () => {
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
 	},
 	infoIcon: {
 		fontSize: 20,
-		marginLeft: 10, // Adjust the icon's position as needed
+		marginLeft: 10,
 		marginTop: 0,
 	},
 	input: {
